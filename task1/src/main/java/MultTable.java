@@ -48,22 +48,22 @@ public class MultTable {
 
     private static void printTable(int[][] multTableArray, int sizeArray) {
 
-        String tableFormatter= "";
+        String tableFormatter = "";
         String lineSplitter = "";
 
         if (sizeArray > 0 & sizeArray < 4) {
-            tableFormatter = "%2s";
-            lineSplitter = "_+";
+            tableFormatter = "%1s";
+            lineSplitter = "-";
 
-        } else if (sizeArray >= 4 & sizeArray  < 10) {
-            tableFormatter = "%3s";
-            lineSplitter = "__+";
+        } else if (sizeArray >= 4 & sizeArray < 10) {
+            tableFormatter = "%2s";
+            lineSplitter = "--";
         } else if (sizeArray >= 10 & sizeArray < 32) {
-            tableFormatter = "%4s";
-            lineSplitter = "___+";
+            tableFormatter = "%3s";
+            lineSplitter = "---";
         } else if (sizeArray == 32) {
-            tableFormatter = "%5s";
-            lineSplitter = "____+";
+            tableFormatter = "%4s";
+            lineSplitter = "----";
         }
 
 
@@ -72,19 +72,28 @@ public class MultTable {
             System.out.println("");
             for (int j = 0; j < sizeArray; j++) {
 
-                System.out.printf(tableFormatter, multTableArray[i][j] + "|");
+                System.out.printf(tableFormatter, multTableArray[i][j]);
+                if (j < sizeArray - 1) {
+                    System.out.printf("%1s", "|");
+                }
 
             }
 
             System.out.println("");
             for (int j = 0; j < sizeArray; j++) {
 
-                System.out.printf(tableFormatter, lineSplitter);
+                if (i < sizeArray - 1) {
+                    System.out.print(lineSplitter);
+                    if (j < sizeArray - 1) {
+                        System.out.print("+");
+                        ;
+                    }
+                }
+
             }
 
         }
     }
-
 }
 
 
