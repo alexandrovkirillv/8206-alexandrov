@@ -1,30 +1,39 @@
+package ru.focusstart.tomsk;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.InputMismatchException;
-import java.util.Scanner;
 
 public class MultTable {
 
     public static void main(String[] args) {
 
-
-        int sizeArray = scanSizeOfTable();
-
+        printGreeting(System.out);
+        int sizeArray = scanSizeOfTable(new BufferedReader(new InputStreamReader(System.in)));
         int[][] multTableArray = fillTheTable(sizeArray);
-
         printTable(multTableArray, sizeArray);
+    }
 
+
+    public static void printGreeting(PrintStream printStream) {
+
+        try {
+            printStream.print("Enter size of multiplication table (from 1 to 32): ");
+        } catch (Exception ignore) {
+        }
 
     }
 
-    private static int scanSizeOfTable() {
+    static int scanSizeOfTable(BufferedReader bufferedReader) {
 
-        Scanner scanner = new Scanner(System.in);
         int sizeArray = 0;
+
         do {
             try {
-                System.out.println("Enter size of multiplication table (from 1 to 32)");
-                sizeArray = scanner.nextInt();
-            } catch (InputMismatchException e) {
-
+                sizeArray = Integer.valueOf(bufferedReader.readLine());
+            } catch (InputMismatchException | IOException e) {
                 System.out.println("Please enter integer");
                 System.exit(1);
             }
@@ -33,7 +42,7 @@ public class MultTable {
         return sizeArray;
     }
 
-    private static int[][] fillTheTable(int sizeArray) {
+    public static int[][] fillTheTable(int sizeArray) {
 
         int[][] multTableArray = new int[sizeArray][sizeArray];
 
@@ -41,8 +50,10 @@ public class MultTable {
             for (int j = 0; j < sizeArray; j++) {
                 multTableArray[i][j] = (i + 1) * (j + 1);
             }
-
         }
+
+
+        // System.out.println(Arrays.deepToString(multTableArray));
         return multTableArray;
     }
 
@@ -54,7 +65,6 @@ public class MultTable {
         if (sizeArray > 0 & sizeArray < 4) {
             tableFormatter = "%1s";
             lineSplitter = "-";
-
         } else if (sizeArray >= 4 & sizeArray < 10) {
             tableFormatter = "%2s";
             lineSplitter = "--";
@@ -66,32 +76,24 @@ public class MultTable {
             lineSplitter = "----";
         }
 
-
         for (int i = 0; i < sizeArray; i++) {
-
             System.out.println("");
             for (int j = 0; j < sizeArray; j++) {
-
                 System.out.printf(tableFormatter, multTableArray[i][j]);
                 if (j < sizeArray - 1) {
                     System.out.printf("%1s", "|");
                 }
-
             }
 
             System.out.println("");
             for (int j = 0; j < sizeArray; j++) {
-
                 if (i < sizeArray - 1) {
                     System.out.print(lineSplitter);
                     if (j < sizeArray - 1) {
                         System.out.print("+");
-                        ;
                     }
                 }
-
             }
-
         }
     }
 }
