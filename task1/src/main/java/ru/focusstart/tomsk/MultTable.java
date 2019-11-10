@@ -4,12 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.util.InputMismatchException;
 
 public class MultTable {
 
     public static void main(String[] args) {
-
         printGreeting(System.out);
         int sizeArray = scanSizeOfTable(new BufferedReader(new InputStreamReader(System.in)));
         int[][] multTableArray = fillTheTable(sizeArray);
@@ -18,7 +16,6 @@ public class MultTable {
 
 
     public static void printGreeting(PrintStream printStream) {
-
         try {
             printStream.print("Enter size of multiplication table (from 1 to 32): ");
         } catch (Exception ignore) {
@@ -27,13 +24,13 @@ public class MultTable {
     }
 
     static int scanSizeOfTable(BufferedReader bufferedReader) {
-
         int sizeArray = 0;
 
         do {
+            System.out.println("Enter correct number!");
             try {
                 sizeArray = Integer.valueOf(bufferedReader.readLine());
-            } catch (InputMismatchException | IOException e) {
+            } catch (NumberFormatException | IOException e) {
                 System.out.println("Please enter integer");
                 System.exit(1);
             }
@@ -43,7 +40,6 @@ public class MultTable {
     }
 
     public static int[][] fillTheTable(int sizeArray) {
-
         int[][] multTableArray = new int[sizeArray][sizeArray];
 
         for (int i = 0; i < sizeArray; i++) {
@@ -51,14 +47,10 @@ public class MultTable {
                 multTableArray[i][j] = (i + 1) * (j + 1);
             }
         }
-
-
-        // System.out.println(Arrays.deepToString(multTableArray));
         return multTableArray;
     }
 
     private static void printTable(int[][] multTableArray, int sizeArray) {
-
         String tableFormatter = "";
         String lineSplitter = "";
 
