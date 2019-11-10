@@ -27,10 +27,10 @@ public class MultTable {
         int sizeArray = 0;
 
         do {
-            System.out.println("Enter correct number!");
             try {
                 sizeArray = Integer.valueOf(bufferedReader.readLine());
             } catch (NumberFormatException | IOException e) {
+                System.out.println("Enter correct number!");
                 System.out.println("Please enter integer");
                 System.exit(1);
             }
