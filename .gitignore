@@ -11,8 +11,6 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
-*.war
 *.nar
 *.ear
 *.zip
@@ -27,4 +25,3 @@ build/
 .idea/
 *.iml
 .gradle
-src/
