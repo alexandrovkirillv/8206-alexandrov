@@ -1,0 +1,5 @@
+Type of figure: Circle
+Square: 78.5
+Perimeter: 31.4
+Radius: 5
+Diameter: 10
