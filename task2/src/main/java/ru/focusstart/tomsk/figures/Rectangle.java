@@ -5,8 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Rectangle implements Figure {
-    private int[] side;
-    private List<String> result = new ArrayList<>();
+    private final int[] side;
     private DecimalFormat df = new DecimalFormat("00.##");
 
     public Rectangle(int[] side) {
@@ -14,48 +13,55 @@ public class Rectangle implements Figure {
     }
 
     @Override
-    public List<String> getResult() {
-        return result;
+    public List<String> getDescription() {
+        List<String> description = new ArrayList<>();
+
+        description.add(printName());
+        description.add("Square: " + printSquare());
+        description.add("Perimeter: " + printPerimeter());
+        description.add("Short side: " + printSide()[0]);
+        description.add("Long side: " + printSide()[1]);
+        description.add("Diagonal: " + printLongestLineInFigure());
+        
+        return description;
     }
 
     @Override
-    public void printName() {
-        result.add("Type of figure: Rectangle");
-        printSquare();
+    public String printName() {
+        return "Type of figure: Rectangle";
     }
 
     @Override
-    public void printSquare() {
+    public float printSquare() {
         try {
             int longSide = side[1];
         }catch (ArrayIndexOutOfBoundsException e){
             System.out.println();
             System.out.println("Print 2 sides for Rectangle!");
         }
-        result.add("Square: " + side[0] * side[1]);
-        printPerimeter();
+        return side[0]*side[1];
     }
 
     @Override
-    public void printPerimeter() {
-        result.add("Perimeter: " + (side[0] + side[1]) * 2);
-        printSide();
+    public float printPerimeter() {
+        return (side[0] + side[1]) * 2;
     }
 
     @Override
-    public void printSide() {
+    public int[] printSide() {
         if (side[0] >= side[1]) {
             int tempI = side[0];
             side[0] = side[1];
             side[1] = tempI;
         }
-        result.add("Short side: " + side[0]);
-        result.add("Long side: " + side[1]);
-        printLongestLineInFigure();
+        return side;
+
     }
 
     @Override
-    public void printLongestLineInFigure() {
-        result.add("Diagonal: " +  df.format((float) Math.sqrt(side[0] * side[0] + side[1] * side[1])));
+    public double printLongestLineInFigure() {
+        return  Math.sqrt(side[0] * side[0] + side[1] * side[1]);
     }
+
+
 }

@@ -15,7 +15,7 @@ public class Circle implements Figure {
     }
 
     @Override
-    public List<String> getResult() {
+    public List<String> getDescription() {
         return result;
     }
 

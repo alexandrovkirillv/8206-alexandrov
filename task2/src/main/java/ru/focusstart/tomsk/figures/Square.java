@@ -10,7 +10,7 @@ public class Square implements Figure {
     private DecimalFormat df = new DecimalFormat("00.##");
 
     @Override
-    public List<String> getResult() {
+    public List<String> getDescription() {
         return result;
     }
 

@@ -70,12 +70,12 @@ public class WorkingWithFile {
 
     private void writeData(Figure figure) throws IOException {
         if (outPutFileName.equals("")) {
-            for (String s : figure.getResult()) {
+            for (String s : figure.getDescription()) {
                 System.out.println(s);
             }
         } else {
             Writer printWriter = new PrintWriter(new File("./task2/src/test/resources/" + outPutFileName));
-            for (String s : figure.getResult()) {
+            for (String s : figure.getDescription()) {
                 System.out.println(s);
                 printWriter.write(s+"\n");
             }
