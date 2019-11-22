@@ -4,49 +4,51 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.StrictMath.PI;
+
 public class Circle implements Figure {
-    private int[] side;
-    private static final float PI = 3.14f;
-    private List<String> result = new ArrayList<>();
+    private int[] parameters;
     private DecimalFormat df = new DecimalFormat("00.##");
 
-    public Circle(int[] side) {
-        this.side = side;
+    public Circle(int[] parameters) {
+        this.parameters = parameters;
     }
 
     @Override
     public List<String> getDescription() {
-        return result;
+        List<String> description = new ArrayList<>();
+
+        description.add(getName());
+        description.add("Square: " + df.format(getSquare()));
+        description.add("Perimeter: " + df.format(getPerimeter()));
+        description.add("Radius: " + parameters[0]);
+        description.add("Diameter: " + getLongestLineInFigure());
+
+        return description;
     }
 
     @Override
-    public void printName() {
-        result.add("Type of figure: Circle");
-        printSquare();
+    public String getName() {
+        return "Type of figure: Circle";
     }
 
     @Override
-    public void printSquare() {
-        result.add("Square: " + df.format(PI * (side[0]) * (side[0])));
-        printPerimeter();
+    public double getSquare() {
+        return PI * (parameters[0]) * (parameters[0]);
     }
 
     @Override
-    public void printPerimeter() {
-        result.add("Perimeter: " + df.format(2 * PI * (side[0])));
-        printSide();
+    public double getPerimeter() {
+        return 2 * PI * (parameters[0]);
     }
 
     @Override
-    public void printSide() {
-       result.add("Radius: " + side[0]);
-       printLongestLineInFigure();
+    public int[] getParameters() {
+        return parameters;
     }
 
     @Override
-    public void printLongestLineInFigure() {
-        result.add("Diameter: " + side[0] * 2);
+    public double getLongestLineInFigure() {
+        return parameters[0] * 2;
     }
-
-
 }

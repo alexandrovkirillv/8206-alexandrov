@@ -5,62 +5,56 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Rectangle implements Figure {
-    private final int[] side;
+    private final int[] parameters;
     private DecimalFormat df = new DecimalFormat("00.##");
 
-    public Rectangle(int[] side) {
-        this.side = side;
+    public Rectangle(int[] parameters) {
+        this.parameters = parameters;
     }
 
     @Override
     public List<String> getDescription() {
         List<String> description = new ArrayList<>();
 
-        description.add(printName());
-        description.add("Square: " + printSquare());
-        description.add("Perimeter: " + printPerimeter());
-        description.add("Short side: " + printSide()[0]);
-        description.add("Long side: " + printSide()[1]);
-        description.add("Diagonal: " + printLongestLineInFigure());
+        description.add(getName());
+        description.add("Square: " + getSquare());
+        description.add("Perimeter: " + getPerimeter());
+        description.add("Short side: " + getParameters()[0]);
+        description.add("Long side: " + getParameters()[1]);
+        description.add("Diagonal: " + getLongestLineInFigure());
         
         return description;
     }
 
     @Override
-    public String printName() {
+    public String getName() {
         return "Type of figure: Rectangle";
     }
 
     @Override
-    public float printSquare() {
-        try {
-            int longSide = side[1];
-        }catch (ArrayIndexOutOfBoundsException e){
-            System.out.println();
-            System.out.println("Print 2 sides for Rectangle!");
+    public double getSquare() {
+        return parameters[0]* parameters[1];
+    }
+
+    @Override
+    public double getPerimeter() {
+        return (parameters[0] + parameters[1]) * 2;
+    }
+
+    @Override
+    public int[] getParameters() {
+        if (parameters[0] >= parameters[1]) {
+            int tempI = parameters[0];
+            parameters[0] = parameters[1];
+            parameters[1] = tempI;
         }
-        return side[0]*side[1];
-    }
-
-    @Override
-    public float printPerimeter() {
-        return (side[0] + side[1]) * 2;
-    }
-
-    @Override
-    public int[] printSide() {
-        if (side[0] >= side[1]) {
-            int tempI = side[0];
-            side[0] = side[1];
-            side[1] = tempI;
-        }
-        return side;
+        return parameters;
 
     }
 
     @Override
-    public double printLongestLineInFigure() {
-        return  Math.sqrt(side[0] * side[0] + side[1] * side[1]);
+    public double getLongestLineInFigure() {
+        return  Math.sqrt(parameters[0] * parameters[0] + parameters[1] * parameters[1]);
     }
 
 

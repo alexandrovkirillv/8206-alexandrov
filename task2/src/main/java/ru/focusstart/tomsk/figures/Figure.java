@@ -3,15 +3,15 @@ package ru.focusstart.tomsk.figures;
 import java.util.List;
 
 public interface Figure {
-    String printName();
+    String getName();
 
-    float printSquare();
+    double getSquare();
 
-    float printPerimeter();
+    double getPerimeter();
 
-    int [] printSide();
+    int [] getParameters();
 
-    double printLongestLineInFigure();
+    double getLongestLineInFigure();
 
     List<String> getDescription();
 }
