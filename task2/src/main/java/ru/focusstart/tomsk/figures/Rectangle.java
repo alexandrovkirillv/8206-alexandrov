@@ -21,7 +21,7 @@ public class Rectangle implements Figure {
         description.add("Perimeter: " + getPerimeter());
         description.add("Short side: " + getParameters()[0]);
         description.add("Long side: " + getParameters()[1]);
-        description.add("Diagonal: " + getLongestLineInFigure());
+        description.add("Diagonal: " + df.format(getLongestLineInFigure()));
         
         return description;
     }

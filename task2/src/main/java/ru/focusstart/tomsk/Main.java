@@ -13,73 +13,81 @@ import java.util.List;
 public class Main {
 
     private static String outPutFileName = "";
+    private static String inPutFileName = "";
+    private static String figureType = "";
 
     public static void main(String[] args) throws Exception {
-
-        List<String> linesFromFile = readFile(args);
-        Figure figure = createFigure(parsingLines(linesFromFile), linesFromFile);
-        writeData(figure);
+        try {
+            checkingArguments(args);
+            List<String> linesFromFile = readFile(inPutFileName);
+            Figure figure = createFigure(parsingLines(linesFromFile));
+            writeData(figure);
+        } catch (ApplicationException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    private static List<String> readFile(String[] args) {
-        List<String> linesFromFile = new ArrayList<>();
-
+    private static void checkingArguments(String[] args) throws ApplicationException {
         if (args.length < 1) {
-            System.out.println("No arguments");
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ApplicationException("No arguments");
         }
 
-        try (LineIterator lineIterator = new LineIterator(new FileReader(args[0]))) {
+        inPutFileName = args[0];
+
+        if (args.length > 1) {
+            outPutFileName = args[1];
+        }
+    }
+
+    private static List<String> readFile(String inPutFileName) throws ApplicationException {
+        List<String> linesFromFile = new ArrayList<>();
+
+        try (LineIterator lineIterator = new LineIterator(new FileReader(inPutFileName))) {
             while (lineIterator.hasNext()) {
                 linesFromFile.add(lineIterator.nextLine());
             }
-        } catch (Exception e) {
-            System.out.println("File not found");
-        }
-        if (args.length > 1) {
-            outPutFileName = args[1];
+        } catch (IOException e) {
+            throw new ApplicationException("File not found");
         }
 
         return linesFromFile;
     }
 
-
-    private static int[] parsingLines(List<String> linesFromFile) {
+    private static int[] parsingLines(List<String> linesFromFile) throws ApplicationException {
         if (linesFromFile.isEmpty() | linesFromFile.size() < 2) {
-            System.out.println("File is empty or no parameters");
-            throw new NullPointerException();
+            throw new ApplicationException("File is empty or no parameters");
         }
 
         int[] parameters = new int[linesFromFile.size() - 1];
+        figureType = linesFromFile.get(0);
 
         try {
             for (int i = 1; i < linesFromFile.size(); i++) {
                 parameters[i - 1] = Integer.parseInt(linesFromFile.get(i));
             }
         } catch (Exception e) {
-            System.out.println("Data is incorrect");
+            throw new ApplicationException("Data is incorrect");
         }
-
         if (linesFromFile.get(0).equals("RECTANGLE") & parameters.length < 2) {
-            System.out.println("Only one parameter for Rectangle");
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ApplicationException("Only one parameter for Rectangle");
         }
 
         return parameters;
     }
 
-    private static Figure createFigure(int[] parameters, List<String> linesFromFile) throws Exception {
-        Figure figure;
 
-        if (linesFromFile.get(0).equals("CIRCLE")) {
+
+    private static Figure createFigure(int[] parameters) throws Exception {
+     Figure figure;
+
+        if (figureType.equals("CIRCLE")) {
             figure = new Circle(parameters);
-        } else if (linesFromFile.get(0).equals("SQUARE")) {
+        } else if (figureType.equals("SQUARE")) {
             figure = new Square(parameters);
-        } else if (linesFromFile.get(0).equals("RECTANGLE")) {
+        } else if (figureType.equals("RECTANGLE")) {
             figure = new Rectangle(parameters);
         } else {
-            System.out.println("Figure is not CIRCLE, SQUARE, RECTANGLE");
-            throw new Exception();
+            throw new ApplicationException("Figure is not CIRCLE, SQUARE, RECTANGLE");
         }
 
         return figure;
@@ -99,5 +107,12 @@ public class Main {
             }
         }
     }
+}
+
+class ApplicationException extends Exception {
+    public ApplicationException(String message) {
+        super(message);
+    }
+
 }
 
