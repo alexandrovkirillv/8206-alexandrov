@@ -1,77 +1,71 @@
 package ru.focusstart.tomsk;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class Main {
-    private final static int N = 5;
-    private final static int M = 5;
+
+    private static final int N=5;
+    private static final int M=5;
+    private static final int tN = 1000;
+    private static final int tM = 1000;
+    private static final int S = 5;
+    private static Deque<Integer> deque = new LinkedBlockingDeque<>(S);
+    private static int product = 0;
+
     public static void main(String[] args) {
+        ProducersTask producersTask = new ProducersTask();
+        CustomersTask customersTask = new CustomersTask();
 
-        ExecutorService producers = Executors.newFixedThreadPool(N);
-        ExecutorService customers = Executors.newFixedThreadPool(M);
-        Semaphore semaphore = new Semaphore(0);
-        AtomicInteger storage = new AtomicInteger();
-
-        Runnable putResource = () -> {
-            try {
-                semaphore.acquire();
-                if(storage.get()==5){
-                    Thread.sleep(1000);
-                }
-                Thread thread = Thread.currentThread();
-                Thread.sleep(1000);
-                storage.getAndIncrement();
-                System.out.println(thread.getName());
-                System.out.println("Storage = " + storage.get());
-
-                semaphore.release();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        while (true) {
+            for (int i = 0; i < N; i++) {
+                new Thread(producersTask).start();
             }
-        };
-        Runnable getResource = () ->{
-            try {
-                semaphore.acquire();
-                if (storage.get() == 0){
-                    Thread.sleep(3000);
-                }
-                Thread thread = Thread.currentThread();
-                Thread.sleep(10);
-                storage.getAndDecrement();
-                System.out.println(thread.getName());
-                System.out.println("Storage = " + storage.get());
-
-                semaphore.release();
-                System.out.println("===========");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            for (int i = 0; i < M; i++) {
+                new Thread(customersTask).start();
             }
-        };
-        semaphore.release(2);
-        for (int i = 0; i < 7; i++) {
-            producers.submit(putResource);
-            customers.submit(getResource);
         }
-
-        for (int i = 0; i < M; i++) {
-
-        }
-
-        producers.shutdown();
-        customers.shutdown();
     }
 
+    static class ProducersTask implements Runnable {
 
-//    private static void createResource() throws InterruptedException {
-//
-//        System.out.println("Start making resource");
-//        Thread.sleep(1000);
-//        System.out.println("Resource done");
-//
-//    }
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(tN);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (deque.offerFirst(product)) {
+                System.out.println("Add");
+            } else {
+                System.out.println("no more space");
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }
+    }
+
+    static class CustomersTask implements Runnable {
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(tM);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (deque.pollFirst() != null) {
+                System.out.println("delete");
+
+            } else {
+                System.out.println("no product");
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }
+    }
 }
-
