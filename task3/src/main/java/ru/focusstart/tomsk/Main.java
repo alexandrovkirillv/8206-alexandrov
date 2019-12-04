@@ -13,7 +13,7 @@ public class Main {
     private static final int tN = 2000;
     private static final int tM = 2000;
     private static final int S = 5;
-    private static final LinkedBlockingDeque<String> deque = new LinkedBlockingDeque<>();
+    private static final LinkedBlockingDeque<String> deque = new LinkedBlockingDeque<>(S);
 
     public static void main(String[] args) {
         Producer producer = new Producer();
@@ -42,14 +42,13 @@ public class Main {
                     logger.info("added " + product);
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error(e);;
             }
         }
 
-        synchronized String createProduct() {
+        String createProduct() {
             String product;
-            counter.getAndIncrement();
-            product = "product" + counter;
+            product = "product" + counter.getAndIncrement();
             return product;
         }
     }
@@ -60,16 +59,16 @@ public class Main {
         public void run() {
             try {
                 while (true) {
-                    try {
+//                    try {
                         String product = deque.takeFirst();
                         logger.info("delete " + product);
                         Thread.sleep(tM);
                         logger.info(product + " is used");
-                    } catch (NoSuchElementException ignored) {
-                    }
+//                    } catch (NoSuchElementException ignored) {
+//                    }
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error(e);
             }
         }
     }
