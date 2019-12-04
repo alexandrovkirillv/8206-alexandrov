@@ -2,8 +2,9 @@ package ru.focusstart.tomsk;
 
 import org.apache.log4j.Logger;
 
-import java.util.Deque;
+import java.util.NoSuchElementException;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
 
@@ -12,6 +13,7 @@ public class Main {
     private static final int tN = 2000;
     private static final int tM = 2000;
     private static final int S = 5;
+    private static final LinkedBlockingDeque<String> deque = new LinkedBlockingDeque<>();
 
     public static void main(String[] args) {
         Producer producer = new Producer();
@@ -26,68 +28,48 @@ public class Main {
         }
     }
 
-    static class Store {
-        private static Deque<String> deque = new LinkedBlockingDeque<>(S);
-        int counter = 0;
+    static class Producer implements Runnable {
         Logger logger = Logger.getLogger("");
+        AtomicInteger counter = new AtomicInteger();
 
-        void put() throws InterruptedException {
-            if (deque.size() < S) {
-                String product = createProduct();
-                logger.info(product + " produced ");
-                deque.offerFirst(product);
-                logger.info("add " + product);
-                Thread.sleep(tN);
-            } else {
-                logger.info("no more space");
-                Thread.sleep(tN);
+        public void run() {
+            try {
+                while (true) {
+                    Thread.sleep(tN);
+                    String product = createProduct();
+                    logger.info(product + " produced ");
+                    deque.put(product);
+                    logger.info("added " + product);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 
-        void get() throws InterruptedException {
-            if (!deque.isEmpty()) {
-                String product = deque.pollLast();
-                logger.info("delete " + product);
-                logger.info(product + " is used");
-                Thread.sleep(tM);
-            } else {
-                logger.info("no product");
-                Thread.sleep(tM);
-            }
-        }
-
-        public String createProduct() {
+        synchronized String createProduct() {
             String product;
-            counter++;
+            counter.getAndIncrement();
             product = "product" + counter;
             return product;
         }
     }
 
-    static class Producer implements Runnable {
-        Store store = new Store();
-
-        public void run() {
-            while (true) {
-                try {
-                    store.put();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     static class Consumer implements Runnable {
-        Store store = new Store();
+        Logger logger = Logger.getLogger("");
 
         public void run() {
-            while (true) {
-                try {
-                    store.get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            try {
+                while (true) {
+                    try {
+                        String product = deque.takeFirst();
+                        logger.info("delete " + product);
+                        Thread.sleep(tM);
+                        logger.info(product + " is used");
+                    } catch (NoSuchElementException ignored) {
+                    }
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
