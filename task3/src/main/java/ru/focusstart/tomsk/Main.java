@@ -42,7 +42,7 @@ public class Main {
                     logger.info("added " + product);
                 }
             } catch (InterruptedException e) {
-                logger.error(e);;
+                logger.error(e);
             }
         }
 
@@ -59,13 +59,10 @@ public class Main {
         public void run() {
             try {
                 while (true) {
-//                    try {
                         String product = deque.takeFirst();
                         logger.info("delete " + product);
                         Thread.sleep(tM);
                         logger.info(product + " is used");
-//                    } catch (NoSuchElementException ignored) {
-//                    }
                 }
             } catch (InterruptedException e) {
                 logger.error(e);
