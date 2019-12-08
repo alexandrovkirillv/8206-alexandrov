@@ -13,4 +13,6 @@ include 'task2'
 include 'task3'
 include 'task4'
 include 'task4:client'
+include 'task4:server'
+include 'task4:messenger'
 
