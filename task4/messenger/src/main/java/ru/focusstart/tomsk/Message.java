@@ -2,7 +2,6 @@ package ru.focusstart.tomsk;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Message {
@@ -12,48 +11,48 @@ public class Message {
     private String nickName;
     private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     private LocalDateTime now;
-    private HashSet<String> listOfUsers;
+    private String systemMessage;
 
-    Message(){
+    Message() {
     }
 
-    Message(String message, String nickName){
-        this.messageTime=dtf.format(now = LocalDateTime.now());
-        this.message=message;
-        this.nickName=" <" + nickName + "> ";
+    Message(String message, String nickName, String systemMessage) {
+        this.messageTime = dtf.format(now = LocalDateTime.now());
+        this.message = message;
+        this.nickName = " <" + nickName + "> ";
+        this.systemMessage = systemMessage;
     }
 
-    public void setMessageTime(String messageTime) {
-        this.messageTime = messageTime;
+    public void setSystemMessage(String systemMessage) {
+        this.systemMessage = systemMessage;
     }
 
-    public String getMessageTime() {
-        return messageTime;
+    public String getSystemMessage() {
+        return systemMessage;
     }
 
     public void setMessage(String message) {
         this.message = message;
     }
 
-    public void setNickName(String nickName) {
-        this.nickName = nickName;
-    }
-
-
     public String getMessage() {
         return message;
     }
 
-    public void setListOfUsers(HashSet<String> listOfUsers) {
-        this.listOfUsers = listOfUsers;
-    }
-
-    public HashSet<String> getListOfUsers() {
-        return listOfUsers;
-    }
-
     public String getNickName() {
         return nickName;
+    }
+
+    public String getMessageTime() {
+        return messageTime;
+    }
+
+    public void setMessageTime(String messageTime) {
+        this.messageTime = messageTime;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
     }
 
     @Override

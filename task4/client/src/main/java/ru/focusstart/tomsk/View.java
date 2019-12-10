@@ -5,7 +5,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class View {
 
@@ -13,16 +12,12 @@ public class View {
     private static JFrame newFrame = new JFrame(appName);
     private static JTextField messageBox;
     private static JTextArea chatBox;
-    private static ArrayList<String> listOfNames = new ArrayList<>();
     private JTextField userNameChooser;
     private JTextField hostNameChooser;
     private JTextField portNameChooser;
-    private JLabel supportMessage;
-    private JFrame preFrame;
+    private static JLabel supportMessage;
+    private static JFrame preFrame;
 
-    public static void setListOfNames(ArrayList<String> listOfNames) {
-        View.listOfNames = listOfNames;
-    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -76,7 +71,8 @@ public class View {
 
     }
 
-    private static void display() {
+   static void display() {
+        preFrame.setVisible(false);
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
@@ -124,6 +120,10 @@ public class View {
         newFrame.add(mainPanel);
         newFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         newFrame.setSize(470, 300);
+       newFrame.setVisible(false);
+    }
+
+    public static void setDisplay(){
         newFrame.setVisible(true);
     }
 
@@ -133,7 +133,7 @@ public class View {
         System.exit(0);
     }
 
-    static class readMessageButtonListener implements ActionListener {
+    private static class readMessageButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             if (messageBox.getText().length() < 1) {
                 // do nothing
@@ -141,37 +141,23 @@ public class View {
                 chatBox.setText("Cleared all messages\n");
                 messageBox.setText("");
             } else {
-                new ClientLogic.WriteMsg(messageBox.getText(), nickName).start();
+                new ClientLogic.WriteMsg(messageBox.getText(), nickName, "OK").start();
                 messageBox.setText("");
             }
         }
     }
 
-    static class sendMessageListener {
-        Message message;
-
-        sendMessageListener(Message message) {
-            this.message = message;
+   static void sendMessageListener(Message message) {
+        if (message.getMessage().length() > 0) {
+            chatBox.append(message.toString() + "\n");
         }
-
-        void actionPerformed() {
-            if (message.getMessage().length() > 0) {
-                chatBox.append(message.toString() + "\n");
-            }
-            messageBox.requestFocusInWindow();
-        }
+        messageBox.requestFocusInWindow();
     }
 
-    private boolean checkForNickName(String nickName) {
 
-        if (!listOfNames.isEmpty()) {
-            for (String s : listOfNames) {
-                if (s.equals(nickName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+
+    static void setSupportMessage(String string) {
+        supportMessage.setText(string);
     }
 
     private static String nickName;
@@ -187,26 +173,23 @@ public class View {
             int correctFields = 0;
 
             if (!portName.matches("[0-9]{4}")) {
-                supportMessage.setText("Wrong port!");
+                setSupportMessage("Wrong port!");
             } else {
                 correctFields++;
             }
             if (nickName.length() < 1) {
-                supportMessage.setText("Field name cannot be empty");
-            } else if (checkForNickName(nickName)) {
-                supportMessage.setText("Nick already taken");
+                setSupportMessage("Field name cannot be empty");
             } else {
                 correctFields++;
 
             }
             if (!hostName.matches("([0-9]{1,3}[.]){3}[0-9]{1,3}") && !hostName.equals("localhost")) {
-                supportMessage.setText("incorrect host");
+                setSupportMessage("incorrect host");
             } else {
                 correctFields++;
             }
             if (correctFields == 3) {
-                preFrame.setVisible(false);
-                display();
+                  display();
                 try {
                     startClient();
                 } catch (IOException e) {

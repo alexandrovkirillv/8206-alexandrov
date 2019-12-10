@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -31,13 +30,13 @@ class ServerLogic extends Thread {
         try {
             inWord = in.readLine();
             Message connectMessage = objectMapper.readValue(inWord, Message.class);
-            if(!listOfUsers.add(connectMessage.getNickName())){
-                connectMessage.setMessage("Nick already taken");
+            if (!listOfUsers.add(connectMessage.getNickName())) {
+                connectMessage.setSystemMessage("Nick already taken");
                 this.send(connectMessage);
                 return;
             }
-            connectMessage.setListOfUsers(listOfUsers);
             for (ServerLogic vr : StartServer.serverList) {
+                connectMessage.setSystemMessage("welcome");
                 vr.send(connectMessage);
             }
             try {
@@ -46,7 +45,10 @@ class ServerLogic extends Thread {
                     System.out.println("Server received " + inWord);
                     if (inWord != null) {
                         Message inMessage = objectMapper.readValue(inWord, Message.class);
-                        if (inMessage.getMessage().equals("Stopped")) {
+
+                        if (inMessage.getSystemMessage().equals("stop")) {
+                            listOfUsers.remove(inMessage.getNickName());
+                            System.out.println(listOfUsers);
                             for (ServerLogic vr : StartServer.serverList) {
                                 vr.send(inMessage);
                             }

@@ -28,25 +28,26 @@ class ClientLogic {
 
             new ReadMsg().start();
         } catch (IOException e) {
-            downService();
+            ClientLogic.downService();
         }
-        new WriteMsg("connected", nickName).start();
-
+        new WriteMsg("connected", nickName, "OK").start();
     }
 
     private static void downService() {
         try {
             if (!socket.isClosed()) {
                 View.shutdown();
-                socket.close();
-                in.close();
-                out.close();
+                ClientLogic.socket.close();
+                ClientLogic.in.close();
+                ClientLogic.out.close();
+                System.exit(0);
             }
         } catch (IOException ignored) {
         }
     }
 
     private static class ReadMsg extends Thread {
+
         @Override
         public void run() {
             String inWord;
@@ -54,13 +55,20 @@ class ClientLogic {
                 while (true) {
                     inWord = in.readLine();
                     Message inMessage = objectMapper.readValue(inWord, Message.class);
-                    if(inMessage.getMessage().equals("Nick already taken")){
-
+                    if (inMessage.getSystemMessage().equals("Nick already taken")) {
+                        View.setSupportMessage("Nick already taken");
+                        //ClientLogic.downService();
+                    } else if (inMessage.getSystemMessage().equals("welcome")) {
+                        View.setDisplay();
+                        View.sendMessageListener(inMessage);
                     }
-                    new View.sendMessageListener(inMessage).actionPerformed();
+
+                    if (inMessage.getSystemMessage().equals("OK") || inMessage.getSystemMessage().equals("stop")) {
+                        View.sendMessageListener(inMessage);
+                    }
                 }
             } catch (IOException e) {
-                downService();
+                ClientLogic.downService();
             }
         }
     }
@@ -68,22 +76,25 @@ class ClientLogic {
     public static class WriteMsg extends Thread {
         String word;
         String nickName;
+        String systemMessage;
 
-        WriteMsg(String word, String nickName) {
+        WriteMsg(String word, String nickName, String systemMessage) {
             this.word = word;
             this.nickName = nickName;
+            this.systemMessage = systemMessage;
         }
 
         @Override
         public void run() {
             try {
                 if (word.equals("stop")) {
-                    out.write(objectMapper.writeValueAsString(new Message("Stopped", nickName)));
+                    System.out.println("stop");
+                    out.write(objectMapper.writeValueAsString(new Message("Stopped", nickName, "stop")) + "\n");
                     out.flush();
                     ClientLogic.downService();
 
                 } else {
-                    String result = objectMapper.writeValueAsString(new Message(word, nickName));
+                    String result = objectMapper.writeValueAsString(new Message(word, nickName, "OK"));
                     out.write(result + "\n");
                     out.flush();
                 }
