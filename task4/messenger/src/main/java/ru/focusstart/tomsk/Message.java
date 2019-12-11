@@ -12,6 +12,8 @@ public class Message {
     private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     private LocalDateTime now;
     private String systemMessage;
+    private HashSet<String> listOfUsers;
+
 
     Message() {
     }
@@ -53,6 +55,14 @@ public class Message {
 
     public void setNickName(String nickName) {
         this.nickName = nickName;
+    }
+
+    public void setListOfUsers(HashSet<String> listOfUsers) {
+        this.listOfUsers = listOfUsers;
+    }
+
+    public HashSet<String> getListOfUsers() {
+        return listOfUsers;
     }
 
     @Override

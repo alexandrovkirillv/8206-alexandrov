@@ -34,10 +34,12 @@ class ServerLogic extends Thread {
                 connectMessage.setSystemMessage("Nick already taken");
                 this.send(connectMessage);
                 return;
-            }
-            for (ServerLogic vr : StartServer.serverList) {
-                connectMessage.setSystemMessage("welcome");
-                vr.send(connectMessage);
+            } else {
+                for (ServerLogic vr : StartServer.serverList) {
+                    connectMessage.setSystemMessage("welcome");
+                    connectMessage.setListOfUsers(listOfUsers);
+                    vr.send(connectMessage);
+                }
             }
             try {
                 while (true) {
@@ -48,7 +50,7 @@ class ServerLogic extends Thread {
 
                         if (inMessage.getSystemMessage().equals("stop")) {
                             listOfUsers.remove(inMessage.getNickName());
-                            System.out.println(listOfUsers);
+                            inMessage.setListOfUsers(listOfUsers);
                             for (ServerLogic vr : StartServer.serverList) {
                                 vr.send(inMessage);
                             }

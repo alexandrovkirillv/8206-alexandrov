@@ -30,20 +30,23 @@ class ClientLogic {
         } catch (IOException e) {
             ClientLogic.downService();
         }
-        new WriteMsg("connected", nickName, "OK").start();
+        new WriteMsg("Connected", nickName, "OK").start();
+
     }
 
     private static void downService() {
         try {
             if (!socket.isClosed()) {
-                View.shutdown();
                 ClientLogic.socket.close();
                 ClientLogic.in.close();
                 ClientLogic.out.close();
-                System.exit(0);
             }
         } catch (IOException ignored) {
         }
+    }
+
+    private static void downWindow() {
+        View.shutdown();
     }
 
     private static class ReadMsg extends Thread {
@@ -57,15 +60,21 @@ class ClientLogic {
                     Message inMessage = objectMapper.readValue(inWord, Message.class);
                     if (inMessage.getSystemMessage().equals("Nick already taken")) {
                         View.setSupportMessage("Nick already taken");
-                        //ClientLogic.downService();
+                        downService();
                     } else if (inMessage.getSystemMessage().equals("welcome")) {
                         View.setDisplay();
+                        View.setNickBox(inMessage.getListOfUsers());
                         View.sendMessageListener(inMessage);
                     }
 
-                    if (inMessage.getSystemMessage().equals("OK") || inMessage.getSystemMessage().equals("stop")) {
+                    if (inMessage.getSystemMessage().equals("OK")) {
                         View.sendMessageListener(inMessage);
                     }
+                    if (inMessage.getSystemMessage().equals("stop")) {
+                        View.setNickBox(inMessage.getListOfUsers());
+                        View.sendMessageListener(inMessage);
+                    }
+
                 }
             } catch (IOException e) {
                 ClientLogic.downService();
@@ -88,10 +97,11 @@ class ClientLogic {
         public void run() {
             try {
                 if (word.equals("stop")) {
-                    System.out.println("stop");
-                    out.write(objectMapper.writeValueAsString(new Message("Stopped", nickName, "stop")) + "\n");
+                    ;
+                    out.write(objectMapper.writeValueAsString(new Message("Disconnected", nickName, "stop")) + "\n");
                     out.flush();
-                    ClientLogic.downService();
+                    downService();
+                    downWindow();
 
                 } else {
                     String result = objectMapper.writeValueAsString(new Message(word, nickName, "OK"));

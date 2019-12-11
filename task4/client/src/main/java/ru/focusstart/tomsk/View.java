@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.HashSet;
 
 public class View {
 
@@ -17,6 +18,7 @@ public class View {
     private JTextField portNameChooser;
     private static JLabel supportMessage;
     private static JFrame preFrame;
+    private static JTextArea nickBox = new JTextArea();
 
 
     public static void main(String[] args) {
@@ -71,8 +73,7 @@ public class View {
 
     }
 
-   static void display() {
-        preFrame.setVisible(false);
+    static void display() {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
@@ -90,11 +91,12 @@ public class View {
         chatBox.setFont(new Font("Serif", Font.PLAIN, 15));
         chatBox.setLineWrap(true);
 
-        JTextArea nickBox = new JTextArea();
+
         nickBox.setEditable(false);
+        nickBox.setLayout(new GridLayout(125, 1));
         nickBox.setFont(new Font("Serif", Font.PLAIN, 15));
         nickBox.setLineWrap(true);
-        nickBox.append(nickName);
+        nickBox.setWrapStyleWord(true);
 
         mainPanel.add(new JScrollPane(chatBox), BorderLayout.CENTER);
         mainPanel.add(new JScrollPane(nickBox), BorderLayout.EAST);
@@ -120,10 +122,19 @@ public class View {
         newFrame.add(mainPanel);
         newFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         newFrame.setSize(470, 300);
-       newFrame.setVisible(false);
+        newFrame.setVisible(false);
     }
 
-    public static void setDisplay(){
+    static void setNickBox(HashSet<String> listOfUsers) {
+        nickBox.setText("");
+        for (String listOfUser : listOfUsers) {
+            nickBox.append(listOfUser + "\n");
+        }
+    }
+
+
+    public static void setDisplay() {
+        preFrame.setVisible(false);
         newFrame.setVisible(true);
     }
 
@@ -147,13 +158,12 @@ public class View {
         }
     }
 
-   static void sendMessageListener(Message message) {
+    static void sendMessageListener(Message message) {
         if (message.getMessage().length() > 0) {
             chatBox.append(message.toString() + "\n");
         }
         messageBox.requestFocusInWindow();
     }
-
 
 
     static void setSupportMessage(String string) {
@@ -189,7 +199,7 @@ public class View {
                 correctFields++;
             }
             if (correctFields == 3) {
-                  display();
+                display();
                 try {
                     startClient();
                 } catch (IOException e) {
