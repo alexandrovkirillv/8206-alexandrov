@@ -2,24 +2,44 @@ package ru.focusstart.tomsk;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
+import java.util.Set;
+
 
 public class Message {
+//    public static void main(String[] args) {
+//
+//        Set<String> tpm = new HashSet<>();
+//        tpm.add("hello");
+//
+//        Set<String> listOfUsers = Collections.unmodifiableSet(tpm);
+//        System.out.println(listOfUsers);
+//        tpm.add("heldsflo");
+//
+//
+//        System.out.println(listOfUsers);
+//
+//    }
 
     private String messageTime;
     private String message;
     private String nickName;
-    private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-    private LocalDateTime now;
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     private String systemMessage;
-    private HashSet<String> listOfUsers;
+    private Set<String> listOfUsers;
 
+    public Set<String> getListOfUsers() {
+        return listOfUsers;
+    }
+
+    public void setListOfUsers(Set<String> listOfUsers) {
+        this.listOfUsers = listOfUsers;
+    }
 
     Message() {
     }
 
     Message(String message, String nickName, String systemMessage) {
-        this.messageTime = dtf.format(now = LocalDateTime.now());
+        this.messageTime = dtf.format(LocalDateTime.now());
         this.message = message;
         this.nickName = " <" + nickName + "> ";
         this.systemMessage = systemMessage;
@@ -57,13 +77,6 @@ public class Message {
         this.nickName = nickName;
     }
 
-    public void setListOfUsers(HashSet<String> listOfUsers) {
-        this.listOfUsers = listOfUsers;
-    }
-
-    public HashSet<String> getListOfUsers() {
-        return listOfUsers;
-    }
 
     @Override
     public String toString() {

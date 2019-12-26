@@ -1,43 +1,46 @@
 package ru.focusstart.tomsk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Properties;
+import java.util.*;
 
-class ServerLogic extends Thread {
+class ServerLogic implements Runnable {
 
     private Socket socket;
     private BufferedReader in;
     private OutputStreamWriter out;
     private static ObjectMapper objectMapper = new ObjectMapper();
-    private static HashSet<String> listOfUsers = new HashSet<>();
+    private static Set<String> listOfUsers = new HashSet<>();
+    private static Set<String> unmodifiableSet = Collections.unmodifiableSet(listOfUsers);
 
     public ServerLogic(Socket socket) throws IOException {
         this.socket = socket;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new OutputStreamWriter(socket.getOutputStream());
-        start();
+
     }
 
     @Override
     public void run() {
+        Logger logger = Logger.getLogger("");
         String inWord;
         try {
             inWord = in.readLine();
             Message connectMessage = objectMapper.readValue(inWord, Message.class);
+            System.out.println("READ");
+
             if (!listOfUsers.add(connectMessage.getNickName())) {
                 connectMessage.setSystemMessage("Nick already taken");
-                this.send(connectMessage);
+                send(connectMessage);
                 return;
             } else {
                 for (ServerLogic vr : StartServer.serverList) {
                     connectMessage.setSystemMessage("welcome");
-                    connectMessage.setListOfUsers(listOfUsers);
+                    connectMessage.setListOfUsers(unmodifiableSet);
                     vr.send(connectMessage);
                 }
             }
@@ -50,7 +53,7 @@ class ServerLogic extends Thread {
 
                         if (inMessage.getSystemMessage().equals("stop")) {
                             listOfUsers.remove(inMessage.getNickName());
-                            inMessage.setListOfUsers(listOfUsers);
+                            inMessage.setListOfUsers(unmodifiableSet);
                             for (ServerLogic vr : StartServer.serverList) {
                                 vr.send(inMessage);
                             }
@@ -58,13 +61,15 @@ class ServerLogic extends Thread {
                             break;
                         }
                         for (ServerLogic vr : StartServer.serverList) {
-                            vr.send(inMessage);
+                            send(inMessage);
                         }
+                    } else if (inWord.equals(null)) {
+                        this.socket.close();
                     }
                     Thread.sleep(100);
                 }
             } catch (NullPointerException | InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Socket closed incorrect", e);
             }
         } catch (IOException e) {
             this.downService();
@@ -86,12 +91,12 @@ class ServerLogic extends Thread {
                 socket.close();
                 in.close();
                 out.close();
-                for (ServerLogic vr : StartServer.serverList) {
-                    if (vr.equals(this)) vr.interrupt();
-                    StartServer.serverList.remove(this);
-                }
+//                for (ServerLogic vr : StartServer.serverList) {
+//                    vr.socket.close();
+//                    StartServer.serverList.remove(this);
+//                }
             }
-        } catch (IOException ignored) {
+        } catch (IOException | ConcurrentModificationException ignored) {
         }
     }
 }
@@ -101,28 +106,39 @@ public class StartServer {
     static LinkedList<ServerLogic> serverList = new LinkedList<>();
 
     public static void main(String[] args) throws IOException {
-
+        Logger logger = Logger.getLogger("");
+        ServerSocket server = null;
         try (InputStream propertiesStream = StartServer.class.getResourceAsStream("/server.properties")) {
             if (propertiesStream != null) {
                 properties.load(propertiesStream);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e);
         }
-        ServerSocket server = new ServerSocket(Integer.parseInt(properties.getProperty("server.port")));
-
-        System.out.println("Server Started");
         try {
-            while (true) {
-                Socket socket = server.accept();
-                try {
-                    serverList.add(new ServerLogic(socket));
-                } catch (IOException e) {
-                    socket.close();
+            server = new ServerSocket(Integer.parseInt(properties.getProperty("server.port")));
+        } catch (NumberFormatException e) {
+            logger.info("properties not found", e);
+        }
+
+        if (server != null) {
+            System.out.println("Server Started");
+            try {
+                while (true) {
+                    Socket socket = server.accept();
+
+                    System.out.println("Current thread: " + Thread.currentThread().getName());
+                    try {
+                        serverList.add(new ServerLogic(socket));
+                        System.out.println("Current thread new: " + Thread.currentThread().getName());
+                    } catch (IOException e) {
+                        socket.close();
+                    }
                 }
+            } finally {
+
+                server.close();
             }
-        } finally {
-            server.close();
         }
     }
 }

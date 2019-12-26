@@ -1,41 +1,52 @@
 package ru.focusstart.tomsk;
 
+import org.apache.log4j.Logger;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Set;
 
-public class View {
+public class View implements Observer, Runnable {
 
     private static String appName = "Chat";
     private static JFrame newFrame = new JFrame(appName);
     private static JTextField messageBox;
     private static JTextArea chatBox;
-    private JTextField userNameChooser;
-    private JTextField hostNameChooser;
-    private JTextField portNameChooser;
+    private static JTextField userNameChooser;
+    private static JTextField hostNameChooser;
+    private static JTextField portNameChooser;
     private static JLabel supportMessage;
     private static JFrame preFrame;
     private static JTextArea nickBox = new JTextArea();
+    private static Logger logger = Logger.getLogger("");
 
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    UIManager.setLookAndFeel(UIManager
-                            .getSystemLookAndFeelClassName());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                View mainGUI = new View();
-                mainGUI.preDisplay();
-            }
-        });
+    public int getAccess() {
+        return access;
     }
+
+    @Override
+    public void run() {
+        preDisplay();
+    }
+
+//    public void start() {
+//            @Override
+//                    SwingUtilities.invokeLater(new Runnable() {
+//            public void run() {
+//                try {
+//                    UIManager.setLookAndFeel(UIManager
+//                            .getSystemLookAndFeelClassName());
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//             preDisplay();
+//            }
+//        });
+//    }
 
     private void preDisplay() {
         newFrame.setVisible(false);
@@ -73,7 +84,9 @@ public class View {
 
     }
 
-    static void display() {
+    public void openDisplay() {
+        preFrame.setVisible(false);
+
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
@@ -122,10 +135,10 @@ public class View {
         newFrame.add(mainPanel);
         newFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         newFrame.setSize(470, 300);
-        newFrame.setVisible(false);
+        newFrame.setVisible(true);
     }
 
-    static void setNickBox(HashSet<String> listOfUsers) {
+    public void setNickBox(Set<String> listOfUsers) {
         nickBox.setText("");
         for (String listOfUser : listOfUsers) {
             nickBox.append(listOfUser + "\n");
@@ -133,15 +146,30 @@ public class View {
     }
 
 
-    public static void setDisplay() {
-        preFrame.setVisible(false);
-        newFrame.setVisible(true);
+    @Override
+    public void onConnected() {
+
     }
 
-    static void shutdown() {
+    @Override
+    public void onDisconnected() {
         newFrame.setVisible(false);
         newFrame.dispose();
         System.exit(0);
+    }
+
+    @Override
+    public void onConnectionFailed() {
+
+    }
+
+
+    public void sendMessage(Message message) {
+        if (message.getMessage().length() > 0) {
+           // System.out.println(message.getMessageTime() + message.getNickName() + message.getMessage());
+            chatBox.append(message.toString() + "\n");
+        }
+        messageBox.requestFocusInWindow();
     }
 
     private static class readMessageButtonListener implements ActionListener {
@@ -158,59 +186,49 @@ public class View {
         }
     }
 
-    static void sendMessageListener(Message message) {
-        if (message.getMessage().length() > 0) {
-            chatBox.append(message.toString() + "\n");
-        }
-        messageBox.requestFocusInWindow();
+    void sendMessageListener(Message message) {
+
     }
 
 
-    static void setSupportMessage(String string) {
+    public void setSupportMessage(String string) {
         supportMessage.setText(string);
     }
 
     private static String nickName;
-    private String hostName;
-    private String portName;
+    private static String hostName;
+    private static String portName;
+    private static int access;
 
     class enterServerButtonListener implements ActionListener {
+
         public void actionPerformed(ActionEvent event) {
             nickName = userNameChooser.getText();
             hostName = hostNameChooser.getText();
             portName = portNameChooser.getText();
 
-            int correctFields = 0;
 
             if (!portName.matches("[0-9]{4}")) {
                 setSupportMessage("Wrong port!");
-            } else {
-                correctFields++;
-            }
+            } else access++;
             if (nickName.length() < 1) {
                 setSupportMessage("Field name cannot be empty");
-            } else {
-                correctFields++;
-
-            }
+            } else access++;
             if (!hostName.matches("([0-9]{1,3}[.]){3}[0-9]{1,3}") && !hostName.equals("localhost")) {
                 setSupportMessage("incorrect host");
-            } else {
-                correctFields++;
-            }
-            if (correctFields == 3) {
-                display();
-                try {
-                    startClient();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+            } else access++;
+            System.out.println("access " + access);
 
+        }
     }
 
-    public void startClient() throws IOException {
-        new ClientLogic(hostName, Integer.parseInt(portName), nickName);
+
+    void startClient(View view) throws IOException {
+        try {
+            new ClientLogic(hostName, Integer.parseInt(portName), nickName, this);
+        } catch (NullPointerException e) {
+            logger.error("Connection refused", e);
+        }
+
     }
 }

@@ -1,6 +1,7 @@
 package ru.focusstart.tomsk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,13 +15,16 @@ class ClientLogic {
     private static BufferedReader in;
     private static OutputStreamWriter out;
     private static ObjectMapper objectMapper = new ObjectMapper();
+    private static Logger logger = Logger.getLogger("");
+    private static Observer observer;
 
 
-    public ClientLogic(String addr, int port, String nickName) throws IOException {
+    public ClientLogic(String addr, int port, String nickName, Observer observer) {
+        this.observer = observer;
         try {
             socket = new Socket(addr, port);
         } catch (IOException e) {
-            System.err.println("Socket failed");
+            logger.error("Connection refused", e);
         }
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -28,6 +32,7 @@ class ClientLogic {
 
             new ReadMsg().start();
         } catch (IOException e) {
+            logger.error("Connection refused", e);
             ClientLogic.downService();
         }
         new WriteMsg("Connected", nickName, "OK").start();
@@ -45,11 +50,7 @@ class ClientLogic {
         }
     }
 
-    private static void downWindow() {
-        View.shutdown();
-    }
-
-    private static class ReadMsg extends Thread {
+    private class ReadMsg extends Thread {
 
         @Override
         public void run() {
@@ -57,26 +58,29 @@ class ClientLogic {
             try {
                 while (true) {
                     inWord = in.readLine();
+                    System.out.println("inWord " + inWord);
                     Message inMessage = objectMapper.readValue(inWord, Message.class);
                     if (inMessage.getSystemMessage().equals("Nick already taken")) {
-                        View.setSupportMessage("Nick already taken");
+                        observer.setSupportMessage("Nick already taken");
                         downService();
                     } else if (inMessage.getSystemMessage().equals("welcome")) {
-                        View.setDisplay();
-                        View.setNickBox(inMessage.getListOfUsers());
-                        View.sendMessageListener(inMessage);
+                        observer.openDisplay();
+                        observer.setNickBox(inMessage.getListOfUsers());
+                        System.out.println("HELL FROM CLIENT");
+                        observer.sendMessage(inMessage);
                     }
 
                     if (inMessage.getSystemMessage().equals("OK")) {
-                        View.sendMessageListener(inMessage);
+                        observer.sendMessage(inMessage);
                     }
                     if (inMessage.getSystemMessage().equals("stop")) {
-                        View.setNickBox(inMessage.getListOfUsers());
-                        View.sendMessageListener(inMessage);
+                        observer.setNickBox(inMessage.getListOfUsers());
+                        observer.sendMessage(inMessage);
                     }
 
                 }
-            } catch (IOException e) {
+            } catch (IOException | IllegalArgumentException | NullPointerException e) {
+                logger.error("error",e);
                 ClientLogic.downService();
             }
         }
@@ -97,11 +101,10 @@ class ClientLogic {
         public void run() {
             try {
                 if (word.equals("stop")) {
-                    ;
                     out.write(objectMapper.writeValueAsString(new Message("Disconnected", nickName, "stop")) + "\n");
                     out.flush();
                     downService();
-                    downWindow();
+                    observer.onDisconnected();
 
                 } else {
                     String result = objectMapper.writeValueAsString(new Message(word, nickName, "OK"));
