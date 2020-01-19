@@ -2,22 +2,20 @@ package ru.focusstart.tomsk;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 
 public class Message {
 
     private String messageTime;
     private String message;
     private String nickName;
-    private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-    private LocalDateTime now;
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     private String systemMessage;
 
     Message() {
     }
 
     Message(String message, String nickName, String systemMessage) {
-        this.messageTime = dtf.format(now = LocalDateTime.now());
+        this.messageTime = DATE_TIME_FORMATTER.format(LocalDateTime.now());
         this.message = message;
         this.nickName = " <" + nickName + "> ";
         this.systemMessage = systemMessage;

@@ -6,73 +6,68 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
-public class View {
+public class View implements Observer{
 
-    private static String appName = "Chat";
-    private static JFrame newFrame = new JFrame(appName);
     private static JTextField messageBox;
     private static JTextArea chatBox;
-    private JTextField userNameChooser;
-    private JTextField hostNameChooser;
-    private JTextField portNameChooser;
-    private static JLabel supportMessage;
-    private static JFrame preFrame;
+    private static JTextField userNameChooser;
+    private static JTextField hostNameChooser;
+    private static JTextField portNameChooser;
+    private static JLabel supportMessage = new JLabel();
+    private static JFrame startWindowFrame = new JFrame();
+    private static JFrame chatFrame = new JFrame();
 
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    UIManager.setLookAndFeel(UIManager
-                            .getSystemLookAndFeelClassName());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                View mainGUI = new View();
-                mainGUI.preDisplay();
-            }
-        });
+    View() {
+        createWelcomeWindow();
     }
 
-    private void preDisplay() {
-        newFrame.setVisible(false);
-        preFrame = new JFrame(appName);
-        preFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    private void createWelcomeWindow() {
+        startWindowFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JButton enterServer = new JButton("Enter Chat Server");
+        enterServer.addActionListener(new enterServerButtonListener());
+        startWindowFrame.add(BorderLayout.CENTER, createPanelWithTextFields());
+        startWindowFrame.add(BorderLayout.SOUTH, enterServer);
+        startWindowFrame.setSize(600, 600);
+        startWindowFrame.setVisible(true);
+
+    }
+
+    private static JPanel createPanelWithTextFields() {
         userNameChooser = new JTextField(7);
         hostNameChooser = new JTextField(7);
         portNameChooser = new JTextField(7);
         JLabel chooseUserNameLabel = new JLabel("Pick a username:");
         JLabel chooseHostNameLabel = new JLabel("Enter a host:");
         JLabel choosePortNameLabel = new JLabel("Enter a port:");
-        supportMessage = new JLabel();
-        JButton enterServer = new JButton("Enter Chat Server");
-        enterServer.addActionListener(new enterServerButtonListener());
-        JPanel prePanel = new JPanel(new GridBagLayout());
 
         GridBagConstraints preCenter = new GridBagConstraints();
         preCenter.insets = new Insets(4, 0, 4, 0);
         preCenter.fill = GridBagConstraints.NONE;
         preCenter.gridwidth = GridBagConstraints.REMAINDER;
 
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.add(chooseUserNameLabel, preCenter);
+        panel.add(userNameChooser, preCenter);
+        panel.add(chooseHostNameLabel, preCenter);
+        panel.add(hostNameChooser, preCenter);
+        panel.add(choosePortNameLabel, preCenter);
+        panel.add(portNameChooser, preCenter);
+        panel.add(supportMessage, preCenter);
 
-        prePanel.add(chooseUserNameLabel, preCenter);
-        prePanel.add(userNameChooser, preCenter);
-        prePanel.add(chooseHostNameLabel, preCenter);
-        prePanel.add(hostNameChooser, preCenter);
-        prePanel.add(choosePortNameLabel, preCenter);
-        prePanel.add(portNameChooser, preCenter);
-        prePanel.add(supportMessage, preCenter);
-
-        preFrame.add(BorderLayout.CENTER, prePanel);
-        preFrame.add(BorderLayout.SOUTH, enterServer);
-        preFrame.setSize(600, 600);
-        preFrame.setVisible(true);
-
+        return panel;
     }
 
-   static void display() {
-        preFrame.setVisible(false);
+    public void displayChatWindow() {
+        try {
+            ClientNew.writeMessage(new Message("Connected", nickName,"OK"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        startWindowFrame.setVisible(false);
+
+
+
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
@@ -83,7 +78,7 @@ public class View {
         messageBox.requestFocusInWindow();
 
         JButton sendMessage = new JButton("Send Message");
-        sendMessage.addActionListener(new readMessageButtonListener());
+        sendMessage.addActionListener(new readMessage());
 
         chatBox = new JTextArea();
         chatBox.setEditable(false);
@@ -117,58 +112,71 @@ public class View {
 
         mainPanel.add(BorderLayout.SOUTH, southPanel);
 
-        newFrame.add(mainPanel);
-        newFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        newFrame.setSize(470, 300);
-       newFrame.setVisible(false);
+        chatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainPanel.setVisible(true);
+        chatFrame.add(mainPanel);
+        chatFrame.setSize(470, 300);
+
+        chatFrame.setVisible(true);
+
+        System.out.println("ALE");
     }
 
-    public static void setDisplay(){
-        newFrame.setVisible(true);
-    }
-
-    static void shutdown() {
-        newFrame.setVisible(false);
-        newFrame.dispose();
-        System.exit(0);
-    }
-
-    private static class readMessageButtonListener implements ActionListener {
-        public void actionPerformed(ActionEvent event) {
-            if (messageBox.getText().length() < 1) {
-                // do nothing
-            } else if (messageBox.getText().equals("clear")) {
-                chatBox.setText("Cleared all messages\n");
-                messageBox.setText("");
-            } else {
-                new ClientLogic.WriteMsg(messageBox.getText(), nickName, "OK").start();
-                messageBox.setText("");
-            }
-        }
-    }
-
-   static void sendMessageListener(Message message) {
-        if (message.getMessage().length() > 0) {
-            chatBox.append(message.toString() + "\n");
-        }
+    @Override
+    public void writeMsgFromServer(Message message) {
+        chatBox.append(message.toString() + "\n");
         messageBox.requestFocusInWindow();
     }
 
 
 
-    static void setSupportMessage(String string) {
+    @Override
+    public void onConnectionFailed(Exception e) {
+        setSupportMessage("Connection Failed");
+        System.out.println("Connection Failed");
+        e.printStackTrace();
+    }
+
+    @Override
+    public void onDisconnected() {
+        chatFrame.setVisible(false);
+
+    }
+
+
+    private static class readMessage implements ActionListener {
+        public void actionPerformed(ActionEvent event) {
+            if (messageBox.getText().length() < 1) {
+                // do nothing
+            } else if (messageBox.getText().equals("stop")) {
+                try {
+                    ClientNew.writeMessage(new Message("Disconnected", nickName, "stop"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    ClientNew.writeMessage(new Message(messageBox.getText(), nickName, "OK"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                messageBox.setText("");
+            }
+        }
+    }
+
+
+    private static void setSupportMessage(String string) {
         supportMessage.setText(string);
     }
 
     private static String nickName;
-    private String hostName;
-    private String portName;
 
-    class enterServerButtonListener implements ActionListener {
+    static class enterServerButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             nickName = userNameChooser.getText();
-            hostName = hostNameChooser.getText();
-            portName = portNameChooser.getText();
+            String hostName = hostNameChooser.getText();
+            String portName = portNameChooser.getText();
 
             int correctFields = 0;
 
@@ -189,18 +197,12 @@ public class View {
                 correctFields++;
             }
             if (correctFields == 3) {
-                  display();
                 try {
-                    startClient();
+                    ClientNew.connect(new ConnectProperties(nickName, hostName, Integer.parseInt(portName)));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-
-    }
-
-    public void startClient() throws IOException {
-        new ClientLogic(hostName, Integer.parseInt(portName), nickName);
     }
 }
