@@ -73,7 +73,6 @@ public class ClientNew {
             socket.close();
             writer.close();
             reader.close();
-
         }
 
     }
