@@ -2,6 +2,7 @@ package ru.focusstart.tomsk;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+
 public class ServerNew {
 
     private static List<Socket> clients = new ArrayList<>();
@@ -17,6 +19,9 @@ public class ServerNew {
     private static List<PrintWriter> writers = new ArrayList<>();
     private static ServerSocket serverSocket;
     private static ObjectMapper mapper = new ObjectMapper();
+    private static List<String> listOfNicknames = new ArrayList<>();
+    private static Logger logger = Logger.getLogger("");
+
 
     public static void main(String[] args) throws IOException {
         Properties properties = new Properties();
@@ -26,7 +31,12 @@ public class ServerNew {
             }
         }
 
-        serverSocket = new ServerSocket(Integer.parseInt(properties.getProperty("server.port")));
+        try {
+            serverSocket = new ServerSocket(Integer.parseInt(properties.getProperty("server.port")));
+        }catch (NumberFormatException e){
+            logger.error("NumberFormatException", e);
+            throw new NumberFormatException();
+        }
         System.out.println("Server started");
 
         readAndWriteMessage();
@@ -48,9 +58,20 @@ public class ServerNew {
 
                     if (inMessageStr != null) {
                         Message message = mapper.readValue(inMessageStr, Message.class);
-                        System.out.println("new message received: " +inMessageStr);
-                        for (PrintWriter writer : writers) {
+                        if (listOfNicknames.contains(message.getNickName()) && message.getSystemMessage().equals("start")) {
+                            message = new Message("", message.getNickName(), "Nick already taken");
+                        } else if (message.getSystemMessage().equals("start")) {
+                            listOfNicknames.add(message.getNickName());
+                            message.setListOfNicknames(listOfNicknames);
+                        }
 
+                        if (message.getSystemMessage().equals("stop")) {
+                            listOfNicknames.remove(message.getNickName());
+                            message.setListOfNicknames(listOfNicknames);
+                        }
+
+                        System.out.println("new message received: " + inMessageStr);
+                        for (PrintWriter writer : writers) {
                             writer.println(mapper.writeValueAsString(message));
                             writer.flush();
                         }
@@ -67,19 +88,6 @@ public class ServerNew {
             }
         });
         messageListenerThread.start();
-    }
-
-    private static void shutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                serverSocket.close();
-                for (Socket socket : clients) {
-                    socket.close();
-                }
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-        }));
     }
 
     private static void listenSockets() throws IOException {

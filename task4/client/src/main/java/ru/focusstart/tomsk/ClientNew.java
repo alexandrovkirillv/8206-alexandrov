@@ -1,25 +1,28 @@
 package ru.focusstart.tomsk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class ClientNew {
+class ClientNew {
 
     private static Socket socket;
     private static PrintWriter writer;
     private static BufferedReader reader;
     private static ObjectMapper mapper = new ObjectMapper();
     private static Observer observer;
+    private static Thread messageListenerThread;
+    private static Logger logger = Logger.getLogger("");
 
 
-    public ClientNew(Observer observer){
-        this.observer = observer;
-
+    ClientNew(Observer observer) {
+        ClientNew.observer = observer;
     }
 
 
@@ -33,25 +36,40 @@ public class ClientNew {
         if (socket != null) {
             writer = new PrintWriter(socket.getOutputStream());
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            observer.displayChatWindow();
 
-            readMessage();
+            readAndParseMessage();
         }
     }
 
-    private static void readMessage() {
-        Thread messageListenerThread = new Thread(() -> {
-            while (!socket.isClosed()) {
+    private static void readAndParseMessage() {
+        AtomicInteger startCounter = new AtomicInteger();
+        messageListenerThread = new Thread(() -> {
+            while (!messageListenerThread.isInterrupted()) {
                 try {
                     String inMessageStr = reader.readLine();
                     Message inMessage = mapper.readValue(inMessageStr, Message.class);
+                    if (inMessage.getSystemMessage().equals("Nick already taken") && startCounter.get() == 0) {
+                        observer.setSupportMessage("Nick already taken");
+                        break;
+                    } else if (inMessage.getSystemMessage().equals("start") && startCounter.get() == 0) {
+                        startCounter.getAndIncrement();
+                        observer.onConnected(inMessage.getListOfNicknames());
+                    }
+
+                    if (inMessage.getSystemMessage().equals("start")) {
+                        observer.updateNickBox(inMessage.getListOfNicknames());
+                    }
+
+                    if (inMessage.getSystemMessage().equals("stop")) {
+                        observer.updateNickBox(inMessage.getListOfNicknames());
+                    }
 
                     System.out.println(inMessage.toString());
-                    observer.writeMsgFromServer(inMessage);
-
-
+                    if (!inMessage.getMessage().equals("")) {
+                        observer.writeMsgFromServer(inMessage);
+                    }
                 } catch (IOException e) {
-                    System.out.println(e.getMessage());
+                    logger.error("IOException", e);
                 }
             }
         });
@@ -60,20 +78,21 @@ public class ClientNew {
     }
 
     static void writeMessage(Message message) throws IOException {
-
         String outMessage = mapper.writeValueAsString(message);
         writer.println(outMessage);
         writer.flush();
 
         if (message.getSystemMessage().equals("stop")) {
-
-            observer.onDisconnected();
-            socket.shutdownInput();
-            socket.shutdownOutput();
-            socket.close();
-            writer.close();
-            reader.close();
+            closeClient();
         }
 
+    }
+
+    private static void closeClient() throws IOException {
+        messageListenerThread.interrupt();
+        writer.close();
+        reader.close();
+        socket.close();
+        observer.onDisconnected();
     }
 }

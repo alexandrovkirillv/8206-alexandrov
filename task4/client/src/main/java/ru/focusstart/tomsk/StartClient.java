@@ -1,10 +1,8 @@
 package ru.focusstart.tomsk;
 
-import java.io.IOException;
-
 public class StartClient {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         View view = new View();
-        ClientNew clientNew = new ClientNew(view);
+        new ClientNew(view);
     }
 }

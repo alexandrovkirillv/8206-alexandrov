@@ -1,21 +1,27 @@
 package ru.focusstart.tomsk;
 
+import org.apache.log4j.Logger;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.List;
 
-public class View implements Observer{
+public class View implements Observer {
 
-    private static JTextField messageBox;
-    private static JTextArea chatBox;
-    private static JTextField userNameChooser;
-    private static JTextField hostNameChooser;
-    private static JTextField portNameChooser;
-    private static JLabel supportMessage = new JLabel();
-    private static JFrame startWindowFrame = new JFrame();
-    private static JFrame chatFrame = new JFrame();
+    private JTextField messageBox;
+    private JTextArea chatBox;
+    private JTextField userNameChooser;
+    private JTextField hostNameChooser;
+    private JTextField portNameChooser;
+    private JLabel supportMessage = new JLabel();
+    private JFrame startWindowFrame = new JFrame();
+    private JFrame chatFrame = new JFrame();
+    private String nickName;
+    private JTextArea nickBox;
+    private Logger logger = Logger.getLogger("");
 
 
     View() {
@@ -30,10 +36,9 @@ public class View implements Observer{
         startWindowFrame.add(BorderLayout.SOUTH, enterServer);
         startWindowFrame.setSize(600, 600);
         startWindowFrame.setVisible(true);
-
     }
 
-    private static JPanel createPanelWithTextFields() {
+    private JPanel createPanelWithTextFields() {
         userNameChooser = new JTextField(7);
         hostNameChooser = new JTextField(7);
         portNameChooser = new JTextField(7);
@@ -58,16 +63,8 @@ public class View implements Observer{
         return panel;
     }
 
+
     public void displayChatWindow() {
-        try {
-            ClientNew.writeMessage(new Message("Connected", nickName,"OK"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        startWindowFrame.setVisible(false);
-
-
-
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
@@ -85,11 +82,11 @@ public class View implements Observer{
         chatBox.setFont(new Font("Serif", Font.PLAIN, 15));
         chatBox.setLineWrap(true);
 
-        JTextArea nickBox = new JTextArea();
+        nickBox = new JTextArea();
         nickBox.setEditable(false);
         nickBox.setFont(new Font("Serif", Font.PLAIN, 15));
         nickBox.setLineWrap(true);
-        nickBox.append(nickName);
+
 
         mainPanel.add(new JScrollPane(chatBox), BorderLayout.CENTER);
         mainPanel.add(new JScrollPane(nickBox), BorderLayout.EAST);
@@ -118,8 +115,6 @@ public class View implements Observer{
         chatFrame.setSize(470, 300);
 
         chatFrame.setVisible(true);
-
-        System.out.println("ALE");
     }
 
     @Override
@@ -128,23 +123,41 @@ public class View implements Observer{
         messageBox.requestFocusInWindow();
     }
 
-
-
     @Override
     public void onConnectionFailed(Exception e) {
         setSupportMessage("Connection Failed");
-        System.out.println("Connection Failed");
-        e.printStackTrace();
+        logger.error("Connection Failed",e);
+    }
+
+    public void onConnected(List<String> listOfNicknames) {
+        try {
+            ClientNew.writeMessage(new Message("Connected", nickName, "OK"));
+        } catch (IOException e) {
+            logger.error("IOException",e);
+        }
+        startWindowFrame.setVisible(false);
+        displayChatWindow();
+
+        for (String nick : listOfNicknames) {
+            nickBox.append(nick);
+        }
+    }
+
+    public void updateNickBox(List<String> listOfNicknames){
+        nickBox.setText("");
+        for (String nick : listOfNicknames) {
+            nickBox.append(nick +  "\n");
+        }
     }
 
     @Override
     public void onDisconnected() {
         chatFrame.setVisible(false);
-
+        System.exit(0);
     }
 
 
-    private static class readMessage implements ActionListener {
+    private class readMessage implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             if (messageBox.getText().length() < 1) {
                 // do nothing
@@ -152,13 +165,13 @@ public class View implements Observer{
                 try {
                     ClientNew.writeMessage(new Message("Disconnected", nickName, "stop"));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("IOException",e);
                 }
             } else {
                 try {
                     ClientNew.writeMessage(new Message(messageBox.getText(), nickName, "OK"));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("IOException",e);
                 }
                 messageBox.setText("");
             }
@@ -166,13 +179,12 @@ public class View implements Observer{
     }
 
 
-    private static void setSupportMessage(String string) {
+    public void setSupportMessage(String string) {
         supportMessage.setText(string);
     }
 
-    private static String nickName;
 
-    static class enterServerButtonListener implements ActionListener {
+    class enterServerButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             nickName = userNameChooser.getText();
             String hostName = hostNameChooser.getText();
@@ -199,8 +211,9 @@ public class View implements Observer{
             if (correctFields == 3) {
                 try {
                     ClientNew.connect(new ConnectProperties(nickName, hostName, Integer.parseInt(portName)));
+                    ClientNew.writeMessage(new Message("", nickName, "start"));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("IOException",e);
                 }
             }
         }

@@ -2,6 +2,9 @@ package ru.focusstart.tomsk;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Message {
 
@@ -10,6 +13,7 @@ public class Message {
     private String nickName;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     private String systemMessage;
+    private List<String> listOfNicknames = Collections.synchronizedList(new ArrayList<>());
 
     Message() {
     }
@@ -19,6 +23,15 @@ public class Message {
         this.message = message;
         this.nickName = " <" + nickName + "> ";
         this.systemMessage = systemMessage;
+    }
+
+
+    public List<String> getListOfNicknames() {
+        return listOfNicknames;
+    }
+
+    public void setListOfNicknames(List<String> listOfNicknames) {
+        this.listOfNicknames = listOfNicknames;
     }
 
     public void setSystemMessage(String systemMessage) {
