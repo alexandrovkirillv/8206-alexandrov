@@ -1,0 +1,32 @@
+buildscript {
+    dependencies {
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE'
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.2.2.RELEASE'
+    }
+}
+
+plugins {
+    id 'org.springframework.boot' version '2.2.2.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
+}
+version 'unspecified'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor group: 'org.springframework.boot', name: 'spring-boot-configuration-processor'
+
+    annotationProcessor group: 'org.projectlombok', name: 'lombok'
+    compileOnly group: 'org.projectlombok', name: 'lombok'
+
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+
+    runtime group: 'org.postgresql', name: 'postgresql'
+}
+
