@@ -3,8 +3,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/library
-    username: library
-    password: library
+    url: jdbc:postgresql://localhost:5433/auto
+    username: auto
+    password: auto
     hikari:
       maximum-pool-size: 10

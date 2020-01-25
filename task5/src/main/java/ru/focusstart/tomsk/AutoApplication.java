@@ -5,10 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootApplication
-public class LibraryApplication {
+public class AutoApplication {
 
     public static void main(String[] args) {
-        new SpringApplicationBuilder(LibraryApplication.class)
+        new SpringApplicationBuilder(AutoApplication.class)
                 .web(WebApplicationType.SERVLET)
                 .run(args);
     }

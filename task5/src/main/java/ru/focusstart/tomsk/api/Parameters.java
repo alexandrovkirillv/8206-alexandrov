@@ -5,7 +5,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 class Parameters {
 
-    static final String AUTHOR_NAME = "authorName";
+    static final String INSTRUCTOR_NAME = "instructorName";
 
     static final String NAME = "name";
 

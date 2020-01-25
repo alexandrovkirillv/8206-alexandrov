@@ -7,8 +7,8 @@ import lombok.Value;
 
 @Value
 @Builder(builderClassName = "Builder", toBuilder = true)
-@JsonDeserialize(builder = AuthorDto.Builder.class)
-public class AuthorDto {
+@JsonDeserialize(builder = StudentDto.Builder.class)
+public class StudentDto {
 
     private final Long id;
 
@@ -16,12 +16,9 @@ public class AuthorDto {
 
     private final String description;
 
-    public AuthorDto(Long id, String name, String description) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-    }
+    private final String isbn;
 
+    private final Long instructorId;
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
