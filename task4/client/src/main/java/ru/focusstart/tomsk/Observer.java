@@ -10,6 +10,9 @@ public interface Observer {
 
     void onConnected(List<String> listOfNicknames);
 
+
+    void displayChatWindow();
+
     void writeMsgFromServer(Message message);
 
     void setSupportMessage(String string);

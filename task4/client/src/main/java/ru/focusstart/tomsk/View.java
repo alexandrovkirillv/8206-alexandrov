@@ -64,7 +64,8 @@ public class View implements Observer {
     }
 
 
-    private void displayChatWindow() {
+    public void displayChatWindow() {
+
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 

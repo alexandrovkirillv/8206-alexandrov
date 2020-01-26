@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+
 import java.util.concurrent.atomic.AtomicReference;
+
 
 class ClientNew {
 
@@ -42,18 +44,21 @@ class ClientNew {
     }
 
     private static void readAndParseMessage() {
+
         AtomicReference<Boolean> isStart = new AtomicReference<>(false);
+
 
         messageListenerThread = new Thread(() -> {
             while (!messageListenerThread.isInterrupted()) {
                 try {
                     String inMessageStr = reader.readLine();
                     Message inMessage = mapper.readValue(inMessageStr, Message.class);
-                    if (inMessage.getSystemMessage().equals("Nick already taken") && isStart.get().equals(false)) {
+                  if (inMessage.getSystemMessage().equals("Nick already taken") && isStart.get().equals(false)) {
                         observer.setSupportMessage("Nick already taken");
                         break;
                     } else if (inMessage.getSystemMessage().equals("start") && isStart.get().equals(false)) {
                         isStart.set(true);
+
                         observer.onConnected(inMessage.getListOfNicknames());
                     }
 
@@ -69,8 +74,10 @@ class ClientNew {
                     if (!inMessage.getMessage().equals("")) {
                         observer.writeMsgFromServer(inMessage);
                     }
-                } catch (IOException ignored) {
-                    logger.info("Exit");
+
+                } catch (IOException e) {
+                    logger.error("IOException", e);
+
                 }
             }
         });
